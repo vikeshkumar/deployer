@@ -19,20 +19,20 @@ Configuration.
 
 
 <plugin>
-	<groupId>com.mindtree.maven</groupId>
-	<artifactId>deployer</artifactId>
-	<version>1.0-SNAPSHOT</version>
-	<configuration>
-		<tomcatPort>80</tomcatPort>
-		<tomcatVersion>tomcat7</tomcatVersion>
-		<tomcatURL>192.168.159.128</tomcatURL>
-		<scriptUser>username</scriptUser>
-		<scriptPass>password</scriptPass>
-		<appName>Rental</appName>
-		<proxyHost>192.168.2.100</proxyHost>
-		<proxyPort>8080</proxyHost>
-		<warFile>target/whateverWar.war</warFile>
-	</configuration>
+    <groupId>com.mindtree.maven</groupId>
+    <artifactId>deployer</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <configuration>
+        <tomcatPort>80</tomcatPort>
+        <tomcatVersion>tomcat7</tomcatVersion>
+        <tomcatURL>192.168.159.128</tomcatURL>
+        <scriptUser>username</scriptUser>
+        <scriptPass>password</scriptPass>
+        <appName>Rental</appName>
+        <proxyHost>192.168.2.100</proxyHost>
+        <proxyPort>8080</proxyHost>
+        <warFile>target/whateverWar.war</warFile>
+    </configuration>
 </plugin>
 
 Can put the above configuration in pom.xml => Highly not recommended as credentials are with pom file.
@@ -42,35 +42,35 @@ To get around this. add a profile in settings.xml file. and add these values the
 <profile>
   <id>someProfile</id>
   <property>
-		<tomcat.port>80</tomcat.port>
-		<tomcat.version>tomcat7</tomcat.version>
-		<tomcat.url>192.168.159.128</tomcat.url>
-		<script.user>username</script.user>
-		<script.pass>password</script.pass>
-		<app.name>Rental</app.name>
-		<proxy.host>192.168.2.100</proxy.host>
-		<proxy.port>8080</proxy.port>
-		<war.file>target/whateverWar.war</war.file>
+        <tomcat.port>80</tomcat.port>
+        <tomcat.version>tomcat7</tomcat.version>
+        <tomcat.url>192.168.159.128</tomcat.url>
+        <script.user>username</script.user>
+        <script.pass>password</script.pass>
+        <app.name>Rental</app.name>
+        <proxy.host>192.168.2.100</proxy.host>
+        <proxy.port>8080</proxy.port>
+        <war.file>target/whateverWar.war</war.file>
   </property>
 </profile>
 
 And in your POM.xml file
 
 <plugin>
-	<groupId>com.mindtree.maven</groupId>
-	<artifactId>deployer</artifactId>
-	<version>1.0-SNAPSHOT</version>
-	<configuration>
-		<tomcatPort>${tomcat.port}</tomcatPort>
-		<tomcatVersion>${tomcat.version}</tomcatVersion>
-		<tomcatURL>${tomcat.url}</tomcatURL>
-		<scriptUser>${script.user}</scriptUser>
-		<scriptPass>${script.pass}</scriptPass>
-		<appName>${app.name}</appName>
-		<proxyHost>${proxy.host}</proxyHost>
-		<proxyPort>${proxy.port}</proxyHost>
-		<warFile>${war.file}</warFile>
-	</configuration>
+    <groupId>com.mindtree.maven</groupId>
+    <artifactId>deployer</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <configuration>
+        <tomcatPort>${tomcat.port}</tomcatPort>
+        <tomcatVersion>${tomcat.version}</tomcatVersion>
+        <tomcatURL>${tomcat.url}</tomcatURL>
+        <scriptUser>${script.user}</scriptUser>
+        <scriptPass>${script.pass}</scriptPass>
+        <appName>${app.name}</appName>
+        <proxyHost>${proxy.host}</proxyHost>
+        <proxyPort>${proxy.port}</proxyHost>
+        <warFile>${war.file}</warFile>
+    </configuration>
 </plugin>
 
 During execution specify the profile name using -P
