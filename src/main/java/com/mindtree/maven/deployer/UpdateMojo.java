@@ -1,18 +1,11 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.mindtree.maven.deployer;
 
-import static com.mindtree.maven.deployer.UndeployerMojo.TOMCAT6;
-import static com.mindtree.maven.deployer.UndeployerMojo.TOMCAT7;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.text.StyledEditorKit;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
