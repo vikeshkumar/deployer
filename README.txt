@@ -2,7 +2,7 @@ README
 
 Usage 
 deployer:deploy => Fresh deployment of a war file
-deployer:undeply => Undeploys a already deployed application.
+deployer:undeploy => Undeploys a already deployed application.
 deployer:update => Undeploys and Deploys (Re-deployment) of the application.
 
 There are sensible defaults.
