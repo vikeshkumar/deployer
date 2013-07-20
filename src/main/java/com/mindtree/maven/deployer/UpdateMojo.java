@@ -1,32 +1,25 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package com.mindtree.maven.deployer;
 
-/*
- * Copyright 2001-2005 The Apache Software Foundation.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+import static com.mindtree.maven.deployer.UndeployerMojo.TOMCAT6;
+import static com.mindtree.maven.deployer.UndeployerMojo.TOMCAT7;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.text.StyledEditorKit;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.params.ConnRouteParams;
@@ -47,12 +40,10 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 /**
  *
- * @author Vikesh Kumar M1019245 <br/> Goal which deploys a war file to running
- * tomcat6 or tomcat7.
+ * @author Vikesh
  */
-@Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
-public class DeployerMojo
-        extends AbstractMojo {
+@Mojo(name = "update", defaultPhase = LifecyclePhase.DEPLOY)
+public class UpdateMojo extends AbstractMojo {
 
     public static final String TOMCAT6 = "tomcat6";
     public static final String TOMCAT7 = "tomcat7";
@@ -83,8 +74,7 @@ public class DeployerMojo
     @Parameter(required = false, defaultValue = "${project.artifactId}")
     private String appName;
 
-    public void execute()
-            throws MojoExecutionException, MojoFailureException {
+    public void execute() throws MojoExecutionException, MojoFailureException {
         DefaultHttpClient client = null;
         try {
             client = new DefaultHttpClient();
@@ -112,6 +102,30 @@ public class DeployerMojo
             System.out.println("WarFile: " + war.getAbsolutePath());
             System.out.println("Project: " + project.getArtifactId());
             System.out.println("Application Name: " + appName);
+            HttpGet get = null;
+            if (tomcatVersion.equalsIgnoreCase(TOMCAT6)) {
+                get = new HttpGet("/manager/undeploy?path=/" + appName);
+            } else if (tomcatVersion.equalsIgnoreCase(TOMCAT7)) {
+                get = new HttpGet("/manager/text/undeploy?path=/" + appName);
+            }
+            if (war.exists() && get != null) {
+                try {
+                    HttpResponse response = client.execute(target, get, localcontext);
+                    HttpEntity responseEntity = response.getEntity();
+                    InputStream is = responseEntity.getContent();
+                    int read;
+                    while ((read = is.read()) != -1) {
+                        System.out.print((char) read);
+                    }
+                    is.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(DeployerMojo.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
+                    throw new MojoFailureException("Undeploying application failed");
+                }
+            } else {
+                System.out.println("File not found");
+                throw new MojoFailureException("Undeploying application failed");
+            }
             HttpPut put = null;
             if (tomcatVersion.equalsIgnoreCase(TOMCAT6)) {
                 put = new HttpPut("/manager/deploy?path=/" + appName);
@@ -134,11 +148,10 @@ public class DeployerMojo
                     is.close();
                 } catch (IOException ex) {
                     Logger.getLogger(DeployerMojo.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
-                    throw new MojoFailureException("Deploying application failed");
+                    throw new MojoFailureException("Undeploying application failed");
                 }
             } else {
                 System.out.println("File not found");
-                throw new MojoFailureException("Deploying application failed. Give file was not found");
             }
         } finally {
             if (client != null) {
