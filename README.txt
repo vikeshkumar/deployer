@@ -19,7 +19,7 @@ Configuration.
 
 
 <plugin>
-    <groupId>com.mindtree.maven</groupId>
+    <groupId>com.github.vikesh.maven</groupId>
     <artifactId>deployer</artifactId>
     <version>1.0-SNAPSHOT</version>
     <configuration>
@@ -57,7 +57,7 @@ To get around this. add a profile in settings.xml file. and add these values the
 And in your POM.xml file
 
 <plugin>
-    <groupId>com.mindtree.maven</groupId>
+    <groupId>com.github.vikesh.maven</groupId>
     <artifactId>deployer</artifactId>
     <version>1.0-SNAPSHOT</version>
     <configuration>
