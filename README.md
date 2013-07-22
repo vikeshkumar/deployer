@@ -15,9 +15,9 @@ There are sensible defaults.
 7. Default tomcatVersion is tomcat6, provide tomcat7 if using that one.
 8. Default proxy port is 80 - change if required.
 
-Configuration.
+Example Configuration
 
-
+```xml
 <plugin>
     <groupId>com.github.vikesh.maven</groupId>
     <artifactId>deployer</artifactId>
@@ -37,8 +37,11 @@ Configuration.
 
 Can put the above configuration in pom.xml => Highly not recommended as credentials are with pom file.
 
-To get around this. add a profile in settings.xml file. and add these values there - following is just an example
+To get around this. add a profile in settings.xml file. and add these values there - following is just an
 
+Example
+
+```xml
 <profile>
   <id>someProfile</id>
   <property>
@@ -56,6 +59,9 @@ To get around this. add a profile in settings.xml file. and add these values the
 
 And in your POM.xml file
 
+Example
+
+```xml
 <plugin>
     <groupId>com.github.vikesh.maven</groupId>
     <artifactId>deployer</artifactId>
