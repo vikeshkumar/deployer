@@ -6,7 +6,7 @@ deployer:undeploy => Undeploys a already deployed application.
 deployer:update => Undeploys and Deploys (Re-deployment) of the application.
 
 There are sensible defaults.
-1. If appName is not provided then the project's artifactId (Directory in which the pom.xml file is present) is taken as one.
+1. If appName is not provided then the project's artifactId is taken as one.
 2. By default deploys to localhost.
 3. Default scheme for authentication with tomcat is HTTP. Can be changed to HTTPS. Any other value will give error.
 4. The default war file is the generated war file in target directory.
