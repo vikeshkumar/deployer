@@ -1,4 +1,4 @@
-package com.mindtree.maven.deployer;
+package com.github.vikesh.maven.deployer;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,9 +12,12 @@ import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.params.ConnRouteParams;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.auth.DigestScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -29,10 +32,12 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 /**
  *
- * @author Vikesh
+ * @author Vikesh Kumar <br/> Goal which deploys a war file to running tomcat6
+ * or tomcat7.
  */
-@Mojo(name = "undeploy", defaultPhase = LifecyclePhase.DEPLOY)
-public class UndeployerMojo extends AbstractMojo {
+@Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
+public class DeployerMojo
+        extends AbstractMojo {
 
     public static final String TOMCAT6 = "tomcat6";
     public static final String TOMCAT7 = "tomcat7";
@@ -63,7 +68,8 @@ public class UndeployerMojo extends AbstractMojo {
     @Parameter(required = false, defaultValue = "${project.artifactId}")
     private String appName;
 
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void execute()
+            throws MojoExecutionException, MojoFailureException {
         DefaultHttpClient client = null;
         try {
             client = new DefaultHttpClient();
@@ -91,13 +97,17 @@ public class UndeployerMojo extends AbstractMojo {
             System.out.println("WarFile: " + war.getAbsolutePath());
             System.out.println("Project: " + project.getArtifactId());
             System.out.println("Application Name: " + appName);
-            HttpGet put = null;
+            HttpPut put = null;
             if (tomcatVersion.equalsIgnoreCase(TOMCAT6)) {
-                put = new HttpGet("/manager/undeploy?path=/" + appName);
+                put = new HttpPut("/manager/deploy?path=/" + appName);
             } else if (tomcatVersion.equalsIgnoreCase(TOMCAT7)) {
-                put = new HttpGet("/manager/text/undeploy?path=/" + appName);
+                put = new HttpPut("/manager/text/deploy?path=/" + appName);
             }
             if (war.exists() && put != null) {
+                MultipartEntity mulEntity = new MultipartEntity(HttpMultipartMode.STRICT);
+                FileBody bin = new FileBody(war);
+                mulEntity.addPart("file", bin);
+                put.setEntity(mulEntity);
                 try {
                     HttpResponse response = client.execute(target, put, localcontext);
                     HttpEntity responseEntity = response.getEntity();
@@ -109,11 +119,11 @@ public class UndeployerMojo extends AbstractMojo {
                     is.close();
                 } catch (IOException ex) {
                     Logger.getLogger(DeployerMojo.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
-                    throw new MojoFailureException("Undeploying application failed");
+                    throw new MojoFailureException("Deploying application failed");
                 }
             } else {
                 System.out.println("File not found");
-                throw new MojoFailureException("Undeploying application failed");
+                throw new MojoFailureException("Deploying application failed. Give file was not found");
             }
         } finally {
             if (client != null) {
