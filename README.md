@@ -34,6 +34,7 @@ Example Configuration
         <warFile>target/whateverWar.war</warFile>
     </configuration>
 </plugin>
+```
 
 Can put the above configuration in pom.xml => Highly not recommended as credentials are with pom file.
 
@@ -56,6 +57,7 @@ Example
         <war.file>target/whateverWar.war</war.file>
   </property>
 </profile>
+```
 
 And in your POM.xml file
 
@@ -78,5 +80,6 @@ Example
         <warFile>${war.file}</warFile>
     </configuration>
 </plugin>
+```
 
 During execution specify the profile name using -P
