@@ -28,97 +28,113 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 /**
- *
+ * 
  * @author Vikesh
  */
 @Mojo(name = "undeploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class UndeployerMojo extends AbstractMojo {
 
-    public static final String TOMCAT6 = "tomcat6";
-    public static final String TOMCAT7 = "tomcat7";
-    public static final String HTTP = "http";
-    public static final String HTTPS = "https";
-    @Parameter(required = false, alias = "proxyPort")
-    private int proxyPort = 80;
-    @Parameter(required = false, alias = "proxyHost")
-    private String proxyHost = null;
-    @Parameter(required = false, alias = "tomcatURL", defaultValue = "127.0.0.1")
-    private String tomcatURL;
-    @Parameter(required = false, alias = "tomcatVersion", defaultValue = TOMCAT6)
-    private String tomcatVersion;
-    @Parameter(required = false, alias = "tomcatPort")
-    private int tomcatPort = 8080;
-    @Parameter(required = false, alias = "scheme", defaultValue = HTTP)
-    private String scheme;
-    @Parameter(required = true, alias = "scriptUser")
-    private String scriptUser;
-    @Parameter(required = true, alias = "scriptPassword")
-    private String scriptPass;
-    @Parameter(defaultValue = "${project.basedir}", alias = "projectDirectory")
-    private File root;
-    @Parameter(required = false, alias = "warFile", defaultValue = "target/${project.build.finalName}.war")
-    private String warFile;
-    @Parameter(defaultValue = "${project}")
-    private org.apache.maven.project.MavenProject project;
-    @Parameter(required = false, defaultValue = "${project.artifactId}")
-    private String appName;
+	public static final String TOMCAT6 = "tomcat6";
+	public static final String TOMCAT7 = "tomcat7";
+	public static final String HTTP = "http";
+	public static final String HTTPS = "https";
+	@Parameter(required = false, alias = "proxyPort")
+	private int proxyPort = 80;
+	@Parameter(required = false, alias = "proxyHost")
+	private String proxyHost = null;
+	@Parameter(required = false, alias = "tomcatURL", defaultValue = "127.0.0.1")
+	private String tomcatURL;
+	@Parameter(required = false, alias = "tomcatVersion", defaultValue = TOMCAT6)
+	private String tomcatVersion;
+	@Parameter(required = false, alias = "tomcatPort")
+	private int tomcatPort = 8080;
+	@Parameter(required = false, alias = "scheme", defaultValue = HTTP)
+	private String scheme;
+	@Parameter(required = true, alias = "scriptUser")
+	private String scriptUser;
+	@Parameter(required = true, alias = "scriptPassword")
+	private String scriptPass;
+	@Parameter(defaultValue = "${project.basedir}", alias = "projectDirectory")
+	private File root;
+	@Parameter(required = false, alias = "warFile", defaultValue = "target/${project.build.finalName}.war")
+	private String warFile;
+	@Parameter(defaultValue = "${project}")
+	private org.apache.maven.project.MavenProject project;
+	@Parameter(required = false, defaultValue = "${project.artifactId}")
+	private String appName;
 
-    public void execute() throws MojoExecutionException, MojoFailureException {
-        DefaultHttpClient client = null;
-        try {
-            client = new DefaultHttpClient();
-            HttpHost proxy;
-            if (proxyHost != null) {
-                proxy = new HttpHost(proxyHost, proxyPort);
-                client.getParams().setParameter(ConnRouteParams.DEFAULT_PROXY, proxy);
-            }
-            HttpHost target = new HttpHost(tomcatURL, tomcatPort, scheme);
-            client.getCredentialsProvider().setCredentials(
-                    new AuthScope(target.getHostName(), target.getPort()),
-                    new UsernamePasswordCredentials(scriptUser, scriptPass));
-            AuthCache authCache = new BasicAuthCache();
-            DigestScheme digestAuth = new DigestScheme();
-            digestAuth.overrideParamter("algorithm", "SHA");
-            digestAuth.overrideParamter("realm", tomcatURL);
-            digestAuth.overrideParamter("nonce", Long.toString(new Random().nextLong(), 36));
-            digestAuth.overrideParamter("qop", "auth");
-            digestAuth.overrideParamter("nc", "0");
-            digestAuth.overrideParamter("cnonce", DigestScheme.createCnonce());
-            authCache.put(target, digestAuth);
-            BasicHttpContext localcontext = new BasicHttpContext();
-            localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
-            File war = new File(root, warFile);
-            System.out.println("WarFile: " + war.getAbsolutePath());
-            System.out.println("Project: " + project.getArtifactId());
-            System.out.println("Application Name: " + appName);
-            HttpGet put = null;
-            if (tomcatVersion.equalsIgnoreCase(TOMCAT6)) {
-                put = new HttpGet("/manager/undeploy?path=/" + appName);
-            } else if (tomcatVersion.equalsIgnoreCase(TOMCAT7)) {
-                put = new HttpGet("/manager/text/undeploy?path=/" + appName);
-            }
-            if (war.exists() && put != null) {
-                try {
-                    HttpResponse response = client.execute(target, put, localcontext);
-                    HttpEntity responseEntity = response.getEntity();
-                    InputStream is = responseEntity.getContent();
-                    int read;
-                    while ((read = is.read()) != -1) {
-                        System.out.print((char) read);
-                    }
-                    is.close();
-                } catch (IOException ex) {
-                    Logger.getLogger(DeployerMojo.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
-                    throw new MojoFailureException("Undeploying application failed");
-                }
-            } else {
-                System.out.println("File not found");
-                throw new MojoFailureException("Undeploying application failed");
-            }
-        } finally {
-            if (client != null) {
-                client.getConnectionManager().shutdown();
-            }
-        }
-    }
+	public void execute() throws MojoExecutionException, MojoFailureException {
+		// Using DefaultHttpClient to make any request to remote tomcat6/tomcat7
+		DefaultHttpClient client = null;
+		try {
+			client = new DefaultHttpClient();
+			HttpHost proxy;
+			if (proxyHost != null) {
+				proxy = new HttpHost(proxyHost, proxyPort);
+				client.getParams().setParameter(ConnRouteParams.DEFAULT_PROXY,
+						proxy);
+			}
+			// Create target host for update, deployment. The default scheme is
+			// HTTP
+			HttpHost target = new HttpHost(tomcatURL, tomcatPort, scheme);
+			client.getCredentialsProvider().setCredentials(
+					new AuthScope(target.getHostName(), target.getPort()),
+					new UsernamePasswordCredentials(scriptUser, scriptPass));
+			// Tomcat uses digestAuth scheme for authentication on
+			// manager-script role.
+			AuthCache authCache = new BasicAuthCache();
+			// Tomcat uses digestAuth scheme for authentication on
+			DigestScheme digestAuth = new DigestScheme();
+			digestAuth.overrideParamter("algorithm", "SHA");
+			digestAuth.overrideParamter("realm", tomcatURL);
+			digestAuth.overrideParamter("nonce",
+					Long.toString(new Random().nextLong(), 36));
+			digestAuth.overrideParamter("qop", "auth");
+			digestAuth.overrideParamter("nc", "0");
+			digestAuth.overrideParamter("cnonce", DigestScheme.createCnonce());
+			authCache.put(target, digestAuth);
+
+			// Create BasicHttpContext
+			BasicHttpContext localcontext = new BasicHttpContext();
+			localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+			File war = new File(root, warFile);
+			System.out.println("WarFile: " + war.getAbsolutePath());
+			System.out.println("Project: " + project.getArtifactId());
+			System.out.println("Application Name: " + appName);
+			HttpGet put = null;
+			// If version of tomcat is 6 then GET path is /manager/undeploy, for
+			// tomcat 7 it is /manager/text/undeploy
+			if (tomcatVersion.equalsIgnoreCase(TOMCAT6)) {
+				put = new HttpGet("/manager/undeploy?path=/" + appName);
+			} else if (tomcatVersion.equalsIgnoreCase(TOMCAT7)) {
+				put = new HttpGet("/manager/text/undeploy?path=/" + appName);
+			}
+			if (war.exists() && put != null) {
+				try {
+					// Execute GET request to undeploy the application
+					HttpResponse response = client.execute(target, put,
+							localcontext);
+					HttpEntity responseEntity = response.getEntity();
+					InputStream is = responseEntity.getContent();
+					int read;
+					while ((read = is.read()) != -1) {
+						System.out.print((char) read);
+					}
+					is.close();
+				} catch (IOException ex) {
+					Logger.getLogger(DeployerMojo.class.getName()).log(
+							Level.SEVERE, ex.getMessage(), ex);
+					throw new MojoFailureException(
+							"Undeploying application failed");
+				}
+			} else {
+				System.out.println("File not found");
+				throw new MojoFailureException("Undeploying application failed");
+			}
+		} finally {
+			if (client != null) {
+				client.getConnectionManager().shutdown();
+			}
+		}
+	}
 }
